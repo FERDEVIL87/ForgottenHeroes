@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb363409d96ec66438868e8a0b462a89, type: 3}
+  m_Name: Kameo_Heider
+  m_EditorClassIdentifier: Assembly-CSharp::SupportCharacterSO
+  characterName: Heider
+  supportPrefab: {fileID: 790161440278413192, guid: 8dfec622d92c0a74b8d8338638961265, type: 3}
+  availableSkills:
+  - {fileID: 11400000, guid: ae5dbd26a1bf2eb4ca59e3ee3d9e6a71, type: 2}

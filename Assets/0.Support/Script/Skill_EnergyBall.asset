@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2437dda3f9b452940b72d7d31107357a, type: 3}
+  m_Name: Skill_EnergyBall
+  m_EditorClassIdentifier: Assembly-CSharp::SupportSkillSO
+  skillName: Energy Ball
+  gaugeCost: 20
+  animationTriggerName: Attack
+  effectPrefab: {fileID: 9197419208224106195, guid: eeb8948980737b34ab38391c9f6989b1, type: 3}
+  skillSFX: {fileID: 8300000, guid: a03d3788cb3648d47871da5852d777df, type: 3}

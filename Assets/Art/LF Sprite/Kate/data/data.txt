@@ -1,0 +1,10 @@
+kATE_new: FROM KATELF2
+
+
+BY:slf2 liridon    juli 2005
+mail:donadk81@hotmail.com
+
+downloaded from slf2....&lf4t
+
+id:  12  type: 0  file: kate\data\Kate.dat
+id: 401  type: 3  file: kate\data\kate_all.dat
