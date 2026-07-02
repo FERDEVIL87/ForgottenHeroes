@@ -16,3 +16,4 @@ MonoBehaviour:
   supportPrefab: {fileID: 790161440278413192, guid: 8dfec622d92c0a74b8d8338638961265, type: 3}
   availableSkills:
   - {fileID: 11400000, guid: ae5dbd26a1bf2eb4ca59e3ee3d9e6a71, type: 2}
+  - {fileID: 11400000, guid: 2c4c7fcba5ff4ac4e9b4d56730236ae7, type: 2}

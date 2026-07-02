@@ -111,7 +111,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 70
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -217,10 +217,10 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 500
-        width: 73
-        height: 85
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -237,12 +237,12 @@ TextureImporter:
       name: jason_3_1
       rect:
         serializedVersion: 2
-        x: 117
+        x: 110
         y: 500
-        width: 102
-        height: 82
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -259,12 +259,12 @@ TextureImporter:
       name: jason_3_2
       rect:
         serializedVersion: 2
-        x: 233
+        x: 220
         y: 500
-        width: 94
-        height: 82
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -281,12 +281,12 @@ TextureImporter:
       name: jason_3_3
       rect:
         serializedVersion: 2
-        x: 352
+        x: 330
         y: 500
-        width: 84
-        height: 83
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -303,12 +303,12 @@ TextureImporter:
       name: jason_3_4
       rect:
         serializedVersion: 2
-        x: 7
-        y: 408
-        width: 64
-        height: 85
+        x: 0
+        y: 400
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -325,12 +325,12 @@ TextureImporter:
       name: jason_3_5
       rect:
         serializedVersion: 2
-        x: 116
-        y: 409
-        width: 80
-        height: 81
+        x: 110
+        y: 400
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -348,11 +348,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 220
-        y: 408
-        width: 86
-        height: 81
+        y: 400
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -369,12 +369,12 @@ TextureImporter:
       name: jason_3_7
       rect:
         serializedVersion: 2
-        x: 11
+        x: 0
         y: 300
-        width: 94
-        height: 83
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -391,12 +391,12 @@ TextureImporter:
       name: jason_3_8
       rect:
         serializedVersion: 2
-        x: 124
+        x: 110
         y: 300
-        width: 83
-        height: 82
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -413,12 +413,12 @@ TextureImporter:
       name: jason_3_9
       rect:
         serializedVersion: 2
-        x: 233
+        x: 220
         y: 300
-        width: 80
-        height: 81
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -435,12 +435,12 @@ TextureImporter:
       name: jason_3_10
       rect:
         serializedVersion: 2
-        x: 3
+        x: 0
         y: 200
-        width: 84
-        height: 84
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -457,12 +457,12 @@ TextureImporter:
       name: jason_3_11
       rect:
         serializedVersion: 2
-        x: 119
+        x: 110
         y: 200
-        width: 79
-        height: 85
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -479,12 +479,12 @@ TextureImporter:
       name: jason_3_12
       rect:
         serializedVersion: 2
-        x: 231
+        x: 220
         y: 200
-        width: 77
-        height: 85
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -501,12 +501,12 @@ TextureImporter:
       name: jason_3_13
       rect:
         serializedVersion: 2
-        x: 17
-        y: 108
-        width: 68
-        height: 80
+        x: 0
+        y: 100
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -523,12 +523,12 @@ TextureImporter:
       name: jason_3_14
       rect:
         serializedVersion: 2
-        x: 123
-        y: 108
-        width: 74
-        height: 80
+        x: 110
+        y: 100
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -545,12 +545,12 @@ TextureImporter:
       name: jason_3_15
       rect:
         serializedVersion: 2
-        x: 248
-        y: 104
-        width: 56
-        height: 88
+        x: 220
+        y: 100
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -567,12 +567,12 @@ TextureImporter:
       name: jason_3_16
       rect:
         serializedVersion: 2
-        x: 356
-        y: 104
-        width: 67
-        height: 88
+        x: 330
+        y: 100
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -589,12 +589,12 @@ TextureImporter:
       name: jason_3_17
       rect:
         serializedVersion: 2
-        x: 32
-        y: 8
-        width: 51
-        height: 83
+        x: 0
+        y: 0
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -611,12 +611,12 @@ TextureImporter:
       name: jason_3_18
       rect:
         serializedVersion: 2
-        x: 119
-        y: 28
-        width: 94
-        height: 55
+        x: 110
+        y: 0
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -633,12 +633,12 @@ TextureImporter:
       name: jason_3_19
       rect:
         serializedVersion: 2
-        x: 242
-        y: 29
-        width: 65
-        height: 52
+        x: 220
+        y: 0
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -655,12 +655,12 @@ TextureImporter:
       name: jason_3_20
       rect:
         serializedVersion: 2
-        x: 353
-        y: 4
-        width: 65
-        height: 86
+        x: 330
+        y: 0
+        width: 110
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -677,7 +677,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 2d4eac853d567194ca2762e8e6211a9e
     internalID: 0
     vertices: []
     indices: 
@@ -685,7 +685,9 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":110.0,"y":100.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
       jason_3_0: 5475003013159625785
       jason_3_1: -3518355206244033365
