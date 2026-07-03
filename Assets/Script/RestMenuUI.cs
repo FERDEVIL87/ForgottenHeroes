@@ -22,7 +22,53 @@ public class RestMenuUI : MonoBehaviour
 
     private void OnEnable()
     {
+        // =====================================================================
+        // PERBAIKAN: Sinkronisasikan halaman UI dengan data yang sedang aktif
+        // =====================================================================
+        SyncUIWithEquippedData();
         UpdateUI();
+    }
+
+    // Fungsi untuk memaksa UI membuka halaman karakter/skill yang sedang dipakai player
+    private void SyncUIWithEquippedData()
+    {
+        if (SupportManager.Instance == null) return;
+
+        // 1. Cari tahu indeks karakter yang sedang dipakai
+        if (SupportManager.Instance.equippedSupport != null)
+        {
+            int foundCharIndex = allCharacters.FindIndex(c => c == SupportManager.Instance.equippedSupport);
+            if (foundCharIndex != -1)
+            {
+                charIndex = foundCharIndex;
+            }
+        }
+        else
+        {
+            charIndex = 0;
+        }
+
+        // 2. Cari tahu indeks skill dari karakter tersebut yang sedang dipakai
+        if (allCharacters.Count > 0 && charIndex < allCharacters.Count)
+        {
+            SupportCharacterSO selectedChar = allCharacters[charIndex];
+            if (SupportManager.Instance.equippedSkill != null && selectedChar.availableSkills != null)
+            {
+                int foundSkillIndex = System.Array.IndexOf(selectedChar.availableSkills, SupportManager.Instance.equippedSkill);
+                if (foundSkillIndex != -1)
+                {
+                    skillIndex = foundSkillIndex;
+                }
+                else
+                {
+                    skillIndex = 0;
+                }
+            }
+            else
+            {
+                skillIndex = 0;
+            }
+        }
     }
 
     // ==========================================
@@ -50,25 +96,27 @@ public class RestMenuUI : MonoBehaviour
     // ==========================================
     public void NextSkill()
     {
+        if (allCharacters.Count == 0) return;
         SupportCharacterSO selectedChar = allCharacters[charIndex];
 
-        // MENGGUNAKAN .Length KARENA INI ADALAH ARRAY
-        if (selectedChar.availableSkills == null || selectedChar.availableSkills.Length == 0) return;
-
-        skillIndex = (skillIndex + 1) % selectedChar.availableSkills.Length;
-        UpdateUI();
+        if (selectedChar.availableSkills != null && selectedChar.availableSkills.Length > 0)
+        {
+            skillIndex = (skillIndex + 1) % selectedChar.availableSkills.Length;
+            UpdateUI();
+        }
     }
 
     public void PrevSkill()
     {
+        if (allCharacters.Count == 0) return;
         SupportCharacterSO selectedChar = allCharacters[charIndex];
 
-        // MENGGUNAKAN .Length KARENA INI ADALAH ARRAY
-        if (selectedChar.availableSkills == null || selectedChar.availableSkills.Length == 0) return;
-
-        skillIndex = skillIndex - 1;
-        if (skillIndex < 0) skillIndex = selectedChar.availableSkills.Length - 1;
-        UpdateUI();
+        if (selectedChar.availableSkills != null && selectedChar.availableSkills.Length > 0)
+        {
+            skillIndex = skillIndex - 1;
+            if (skillIndex < 0) skillIndex = selectedChar.availableSkills.Length - 1;
+            UpdateUI();
+        }
     }
 
     // ==========================================
@@ -76,6 +124,7 @@ public class RestMenuUI : MonoBehaviour
     // ==========================================
     public void ToggleEquipCharacter()
     {
+        if (allCharacters.Count == 0) return;
         SupportCharacterSO selectedChar = allCharacters[charIndex];
 
         if (SupportManager.Instance.equippedSupport == selectedChar)
@@ -86,19 +135,29 @@ public class RestMenuUI : MonoBehaviour
         else
         {
             SupportManager.Instance.equippedSupport = selectedChar;
-            SupportManager.Instance.equippedSkill = null;
+            if (selectedChar.availableSkills != null && selectedChar.availableSkills.Length > 0)
+            {
+                SupportManager.Instance.equippedSkill = selectedChar.availableSkills[0];
+                skillIndex = 0;
+            }
+            else
+            {
+                SupportManager.Instance.equippedSkill = null;
+            }
         }
 
+        SupportManager.Instance.SaveEquippedSupport();
         UpdateUI();
     }
 
     public void ToggleEquipSkill()
     {
+        if (allCharacters.Count == 0) return;
         SupportCharacterSO selectedChar = allCharacters[charIndex];
 
-        // MENGGUNAKAN .Length KARENA INI ADALAH ARRAY
-        if (selectedChar.availableSkills == null || selectedChar.availableSkills.Length == 0) return;
+        if (SupportManager.Instance.equippedSupport != selectedChar) return;
 
+        if (selectedChar.availableSkills == null || selectedChar.availableSkills.Length == 0) return;
         SupportSkillSO selectedSkill = selectedChar.availableSkills[skillIndex];
 
         if (SupportManager.Instance.equippedSkill == selectedSkill)
@@ -110,6 +169,7 @@ public class RestMenuUI : MonoBehaviour
             SupportManager.Instance.equippedSkill = selectedSkill;
         }
 
+        SupportManager.Instance.SaveEquippedSupport();
         UpdateUI();
     }
 
@@ -122,7 +182,7 @@ public class RestMenuUI : MonoBehaviour
 
         SupportCharacterSO selectedChar = allCharacters[charIndex];
 
-        characterNameText.text = selectedChar.name;
+        characterNameText.text = selectedChar.characterName;
 
         bool isCharEquipped = (SupportManager.Instance.equippedSupport == selectedChar);
         charEquipBtnText.text = isCharEquipped ? "Unequip" : "Equip";
@@ -131,11 +191,12 @@ public class RestMenuUI : MonoBehaviour
         {
             skillPanel.SetActive(true);
 
-            // MENGGUNAKAN .Length KARENA INI ADALAH ARRAY
             if (selectedChar.availableSkills != null && selectedChar.availableSkills.Length > 0)
             {
+                if (skillIndex >= selectedChar.availableSkills.Length) skillIndex = 0;
+
                 SupportSkillSO selectedSkill = selectedChar.availableSkills[skillIndex];
-                skillNameText.text = selectedSkill.name;
+                skillNameText.text = selectedSkill.skillName;
 
                 bool isSkillEquipped = (SupportManager.Instance.equippedSkill == selectedSkill);
                 skillEquipBtnText.text = isSkillEquipped ? "Unequip" : "Equip";

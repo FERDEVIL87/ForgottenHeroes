@@ -13,14 +13,12 @@ MonoBehaviour:
   m_Name: Skill_HeiderDash
   m_EditorClassIdentifier: Assembly-CSharp::SupportSkillSO
   skillName: Energy Dash
-  gaugeCost: 20
-  animationTriggerName: HeiderDash
-  effectPrefab: {fileID: 8985863842491344199, guid: 3f556c7d7d6e73b4dac8f9b6920b897e, type: 3}
-  skillSFX: {fileID: 0}
+  gaugeCost: 1
+  ownerCharacter: {fileID: 11400000, guid: e38d13b5739610b49a093780edf60095, type: 2}
   skillType: 1
-  dashSpeed: 15
-  dashDuration: 0.3
-  dashDamage: 25
+  animationTriggerName: HeiderDash
+  effectPrefab: {fileID: 9197419208224106195, guid: eeb8948980737b34ab38391c9f6989b1, type: 3}
+  skillSFX: {fileID: 8300000, guid: 66a06438a63079c4ebc8f6e210504307, type: 3}
   enemyLayer:
     serializedVersion: 2
     m_Bits: 64

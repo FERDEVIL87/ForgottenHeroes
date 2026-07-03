@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic; // Dibutuhkan untuk menggunakan List database
 using UnityEngine;
 
 public class SupportManager : MonoBehaviour
@@ -7,13 +8,16 @@ public class SupportManager : MonoBehaviour
     public static SupportManager Instance { get; private set; }
 
     [Header("Current Equipped")]
-    // Tipe data disesuaikan dengan ScriptableObject aslimu (SupportCharacterSO & SupportSkillSO)
     public SupportCharacterSO equippedSupport;
     public SupportSkillSO equippedSkill;
 
     [Header("Cost Settings")]
     [Tooltip("Jumlah Mana/Energy yang dibutuhkan untuk summon")]
-    public int summonEnergyCost = 25; // Variabel untuk mengatur harga mana
+    public int summonEnergyCost = 25;
+
+    [Header("Database All Supports")]
+    [Tooltip("Masukkan semua ScriptableObject SupportCharacterSO game Anda ke sini via Inspector")]
+    public List<SupportCharacterSO> allSupportDatabase;
 
     private bool isCallingSupport = false;
 
@@ -25,54 +29,49 @@ public class SupportManager : MonoBehaviour
             return;
         }
         Instance = this;
+
+        // =====================================================================
+        // PERBAIKAN: Muat data di Awake agar siap SEBELUM UI (OnEnable) berjalan
+        // =====================================================================
+        LoadEquippedSupport();
     }
 
-    // === FUNGSI BARU YANG SUDAH DISESUAIKAN DAN DIGABUNGKAN ===
+    // Fungsi Start() dikosongkan karena logika load sudah pindah ke Awake
+    private void Start()
+    {
+    }
+
     public void CallSupportWithPosition(Vector3 spawnPos, int faceDir)
     {
-        // Mencegah spam jika Heider masih berada di arena / masih dalam cooldown
         if (isCallingSupport) return;
 
-        // Cek apakah data Support dan Prefab-nya sudah dimasukkan di Inspector
         if (equippedSupport != null && equippedSupport.supportPrefab != null)
         {
-            // =========================================================
-            // === LOGIKA BARU: CEK DAN POTONG MANA SEBELUM MUNCUL ===
-            // =========================================================
             if (PlayerController.Instance != null)
             {
-                if (PlayerController.Instance.currentEnergy < summonEnergyCost)
+                if (!PlayerController.Instance.HasEnoughStamina(summonEnergyCost))
                 {
-                    Debug.LogWarning("GAGAL: Mana/Energy tidak cukup!");
-                    return; // Batalkan summon kalau mana tidak cukup
+                    Debug.LogWarning("Mana tidak cukup untuk memanggil Kameo!");
+                    return;
                 }
+                PlayerController.Instance.UseStamina(summonEnergyCost);
 
-                // Potong Mana/Energy Player
-                PlayerController.Instance.currentEnergy -= summonEnergyCost;
-
-                // Update UI Bar Mana langsung
                 if (PlayerController.Instance.onManaChangedCallback != null)
                 {
                     PlayerController.Instance.onManaChangedCallback.Invoke();
                 }
             }
-            // =========================================================
 
             isCallingSupport = true;
 
-            // 1. Spawn prefab Heider di posisi modular yang sudah dihitung oleh Player
             GameObject spawnedSupport = Instantiate(equippedSupport.supportPrefab, spawnPos, Quaternion.identity);
+            SupportBase supportScript = spawnedSupport.GetComponent<SupportBase>();
 
-            // 2. Ambil script HeiderSupport dari objek yang baru lahir tersebut
-            HeiderSupport heiderScript = spawnedSupport.GetComponent<HeiderSupport>();
-
-            if (heiderScript != null)
+            if (supportScript != null)
             {
-                // 3. Kirim data arah hadap (0 = Kanan, 1 = Kiri) ke Heider agar animasinya pas
-                heiderScript.faceDir = faceDir;
+                supportScript.Init(faceDir, equippedSkill);
             }
 
-            // Jalankan cooldown agar setelah Heider hilang, tombol baru bisa ditekan lagi
             StartCoroutine(ResetCooldownRoutine());
         }
         else
@@ -81,11 +80,70 @@ public class SupportManager : MonoBehaviour
         }
     }
 
-    // Coroutine untuk mereset status panggilan (Cooldown)
     private IEnumerator ResetCooldownRoutine()
     {
-        // Beri jeda 1.2 detik (sesuai total durasi Heider muncul sampai hilang) sebelum bisa dipanggil lagi
         yield return new WaitForSeconds(1.2f);
         isCallingSupport = false;
+    }
+
+    // =====================================================================
+    // FITUR TAMBAHAN: Log Debug biar kamu bisa pantau isi datanya di Console
+    // =====================================================================
+    public void SaveEquippedSupport()
+    {
+        if (equippedSupport != null)
+            PlayerPrefs.SetString("SavedSupportName", equippedSupport.characterName);
+        else
+            PlayerPrefs.DeleteKey("SavedSupportName");
+
+        if (equippedSkill != null)
+            PlayerPrefs.SetString("SavedSkillName", equippedSkill.skillName);
+        else
+            PlayerPrefs.DeleteKey("SavedSkillName");
+
+        PlayerPrefs.Save();
+        Debug.Log($"[SAVE SUCCESS] Karakter: {(equippedSupport != null ? equippedSupport.characterName : "Null")}, Skill: {(equippedSkill != null ? equippedSkill.skillName : "Null")}");
+    }
+
+    public void LoadEquippedSupport()
+    {
+        if (!PlayerPrefs.HasKey("HasSaveData")) return;
+
+        string savedCharName = PlayerPrefs.GetString("SavedSupportName", "");
+        string savedSkillName = PlayerPrefs.GetString("SavedSkillName", "");
+
+        if (string.IsNullOrEmpty(savedCharName))
+        {
+            equippedSupport = null;
+            equippedSkill = null;
+            return;
+        }
+
+        SupportCharacterSO foundChar = allSupportDatabase.Find(c => c.characterName == savedCharName);
+        if (foundChar != null)
+        {
+            equippedSupport = foundChar;
+
+            if (foundChar.availableSkills != null && !string.IsNullOrEmpty(savedSkillName))
+            {
+                bool skillFound = false;
+                foreach (SupportSkillSO sk in foundChar.availableSkills)
+                {
+                    if (sk.skillName == savedSkillName)
+                    {
+                        equippedSkill = sk;
+                        skillFound = true;
+                        break;
+                    }
+                }
+                if (!skillFound) equippedSkill = null;
+            }
+            else
+            {
+                equippedSkill = null;
+            }
+        }
+
+        Debug.Log($"[LOAD SUCCESS] Berhasil memuat dari Save Data -> Karakter: {(equippedSupport != null ? equippedSupport.characterName : "Null")}, Skill: {(equippedSkill != null ? equippedSkill.skillName : "Null")}");
     }
 }

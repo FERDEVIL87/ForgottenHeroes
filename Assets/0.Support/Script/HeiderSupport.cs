@@ -1,178 +1,150 @@
 using System.Collections;
-using System.Collections.Generic; // Dibutuhkan untuk List
+using System.Collections.Generic;
 using UnityEngine;
 
-public class HeiderSupport : MonoBehaviour
+public class HeiderSupport : SupportBase
 {
-    private SpriteRenderer sr;
-    private Animator anim;
-    private bool hasFired = false;
-
-    [Header("Fade Settings")]
-    [SerializeField] private float fadeDuration = 0.3f;
+    [Header("Heider Base Settings")]
     [SerializeField] private float castDelay = 0.3f;
-    [SerializeField] private float lingerTime = 0.5f;
-
-    [Header("Spawn Point")]
     [SerializeField] private Transform firePoint;
 
-    public int faceDir { get; set; }
+    // =================================================================
+    // STAT PROJECTILE MODULAR
+    // =================================================================
+    [Header("Heider Projectile Settings")]
+    [Tooltip("Centang jika ingin bola api menembus tembok. Kosongkan jika ingin hancur/meledak saat kena tembok.")]
+    [SerializeField] private bool projectilePiercesObstacles = false; // <-- TOGGLE BARU
 
-    void Start()
+    [Space]
+    [Tooltip("Damage jika menabrak 1 target secara langsung (tanpa ledakan)")]
+    [SerializeField] private float projectileImpactDamage = 45f;
+    [Tooltip("Prefab efek visual saat peluru mengenai musuh dalam mode Single Target")]
+    [SerializeField] private GameObject singleTargetImpactPrefab;
+    [Tooltip("Berapa detik efek hantaman single target akan bertahan sebelum hilang otomatis")]
+    [SerializeField] private float singleTargetVFXLifetime = 1.0f;
+
+    [Space]
+    [Header("--- AOE Explosion Settings ---")]
+    [Tooltip("Centang untuk mengubah bola api menjadi bom yang meledak saat menyentuh musuh.")]
+    [SerializeField] private bool projectileIsAOE = false;
+    [Tooltip("Radius area ledakan")]
+    [SerializeField] private float aoeRadius = 2.5f;
+    [Tooltip("Damage yang dihasilkan oleh ledakan ke semua musuh di area")]
+    [SerializeField] private float aoeDamage = 60f;
+    [Tooltip("Prefab efek visual (VFX) ledakan yang akan muncul")]
+    [SerializeField] private GameObject aoeExplosionPrefab;
+    [Tooltip("Berapa detik efek ledakan AOE akan bertahan sebelum hilang otomatis")]
+    [SerializeField] private float aoeExplosionLifetime = 1.5f;
+
+    // =================================================================
+    // STAT DASH MODULAR
+    // =================================================================
+    [Header("Heider Dash Settings")]
+    [SerializeField] private float dashSpeed = 18f;
+    [SerializeField] private float dashDuration = 0.25f;
+    [SerializeField] private float dashDamage = 35f;
+    [SerializeField] private float dashRadius = 1.3f;
+
+    protected override IEnumerator ExecuteCharacterSkill()
     {
-        sr = GetComponent<SpriteRenderer>();
-        anim = GetComponent<Animator>();
+        if (anim != null && !string.IsNullOrEmpty(activeSkill.animationTriggerName))
+            anim.SetTrigger(activeSkill.animationTriggerName);
 
-        if (faceDir == 1) // Jika Player menghadap KIRI
+        if (activeSkill.skillSFX != null)
+            AudioSource.PlayClipAtPoint(activeSkill.skillSFX, transform.position);
+
+        yield return new WaitForSeconds(castDelay);
+
+        if (activeSkill.skillType == SupportSkillType.Projectile)
         {
-            transform.localScale = new Vector3(-Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+            ExecuteProjectileSkill();
         }
-        else // Jika Player menghadap KANAN
+        else if (activeSkill.skillType == SupportSkillType.Dash)
         {
-            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+            yield return StartCoroutine(ExecuteDashSkill());
         }
 
-        Color c = sr.color;
-        c.a = 0f;
-        sr.color = c;
-
-        StartCoroutine(SupportRoutine());
+        yield return new WaitForSeconds(lingerTime);
     }
 
-    private IEnumerator SupportRoutine()
+    private void ExecuteProjectileSkill()
     {
-        // === FASE 1: FADE IN ===
-        float t = 0;
-        while (t < fadeDuration)
+        if (activeSkill.effectPrefab != null && firePoint != null)
         {
-            t += Time.deltaTime;
-            float alpha = Mathf.Lerp(0f, 1f, t / fadeDuration);
-            sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, alpha);
-            yield return null;
-        }
-        sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, 1f);
+            Quaternion bulletRotation = (faceDir == 1) ? Quaternion.Euler(0f, 180f, 0f) : Quaternion.identity;
+            GameObject projectile = Instantiate(activeSkill.effectPrefab, firePoint.position, bulletRotation);
 
-        // Ambil data skill yang sedang aktif dari SupportManager
-        SupportSkillSO activeSkill = (SupportManager.Instance != null) ? SupportManager.Instance.equippedSkill : null;
-
-        if (activeSkill != null)
-        {
-            // =================================================================
-            // CABANG A: JIKA SKILL ADALAH TIPE PROJECTILE (LOGIKA LAMA)
-            // =================================================================
-            if (activeSkill.skillType == SupportSkillType.Projectile)
+            FireBall fb = projectile.GetComponent<FireBall>();
+            if (fb != null)
             {
-                if (anim != null && !string.IsNullOrEmpty(activeSkill.animationTriggerName))
+                // 1. Tentukan apakah bola api milik Heider bisa tembus tembok atau tidak
+                fb.SetObstacleBehavior(projectilePiercesObstacles);
+
+                // 2. Suntikkan data dasar Single Target
+                fb.SetSingleTargetStats(projectileImpactDamage, singleTargetImpactPrefab, singleTargetVFXLifetime);
+
+                // 3. Suntikkan tambahan data Ledakan jika fitur AOE diaktifkan
+                if (projectileIsAOE)
                 {
-                    anim.SetTrigger(activeSkill.animationTriggerName);
+                    fb.SetExplosionStats(aoeRadius, aoeDamage, aoeExplosionPrefab, aoeExplosionLifetime, activeSkill.enemyLayer);
                 }
-
-                yield return new WaitForSeconds(castDelay);
-
-                if (!hasFired)
-                {
-                    hasFired = true;
-
-                    if (activeSkill.skillSFX != null)
-                    {
-                        AudioSource.PlayClipAtPoint(activeSkill.skillSFX, transform.position);
-                    }
-
-                    GameObject skillPrefab = activeSkill.effectPrefab;
-                    if (skillPrefab != null && firePoint != null)
-                    {
-                        Quaternion bulletRotation = Quaternion.identity;
-                        if (faceDir == 1)
-                        {
-                            bulletRotation = Quaternion.Euler(0f, 180f, 0f);
-                        }
-                        Instantiate(skillPrefab, firePoint.position, bulletRotation);
-                    }
-                }
-
-                yield return new WaitForSeconds(lingerTime);
-            }
-            // =================================================================
-            // CABANG B: JIKA SKILL ADALAH TIPE DASH ATTACK (SKILL BARU)
-            // =================================================================
-            else if (activeSkill.skillType == SupportSkillType.Dash)
-            {
-                // 1. MAINKAN SFX DASH (Jika diinput)
-                if (activeSkill.skillSFX != null)
-                {
-                    AudioSource.PlayClipAtPoint(activeSkill.skillSFX, transform.position);
-                }
-
-                // Ambil Rigidbody2D jika ada di prefab Heider untuk pergerakan fisik yang lebih halus
-                Rigidbody2D rb = GetComponent<Rigidbody2D>();
-                Vector2 dashDirection = (faceDir == 0) ? Vector2.right : Vector2.left;
-
-                // List penampung musuh agar tidak terkena hit berkali-kali di frame berturut-turut
-                List<Collider2D> damagedEnemies = new List<Collider2D>();
-
-                float dashTimer = 0f;
-
-                // 2. FASE DASH KEDEPAN + DEAL DAMAGE
-                while (dashTimer < activeSkill.dashDuration)
-                {
-                    dashTimer += Time.deltaTime;
-                    // Eksekusi pergerakan maju
-                    if (rb != null)
-                    {
-                        rb.linearVelocity = dashDirection * activeSkill.dashSpeed; // <--- SUDAH DIPERBARUI
-                    }
-                    else
-                    {
-                        transform.position += (Vector3)(dashDirection * activeSkill.dashSpeed * Time.deltaTime);
-                    }
-
-                    // Deteksi lingkaran area badan Heider sepanjang jalur dash
-                    Collider2D[] hitMusuh = Physics2D.OverlapCircleAll(transform.position, 1.0f, activeSkill.enemyLayer);
-                    foreach (Collider2D musuh in hitMusuh)
-                    {
-                        if (!damagedEnemies.Contains(musuh))
-                        {
-                            damagedEnemies.Add(musuh);
-
-                            // Panggil fungsi damage musuh (Sesuaikan nama fungsi "TakeDamage" dengan skrip musuhmu)
-                            musuh.SendMessage("TakeDamage", activeSkill.dashDamage, SendMessageOptions.DontRequireReceiver);
-                            Debug.Log($"Kameo menghantam {musuh.name} sebesar {activeSkill.dashDamage} damage!");
-                        }
-                    }
-
-                    yield return null;
-                }
-                // Dash selesai, hentikan sisa dorongan kecepatan fisik
-                if (rb != null) rb.linearVelocity = Vector2.zero; // <--- SUDAH DIPERBARUI
-
-                // 3. FASE CASTING (Memicu animasi casting/pose setelah dash selesai)
-                if (anim != null && !string.IsNullOrEmpty(activeSkill.animationTriggerName))
-                {
-                    anim.SetTrigger(activeSkill.animationTriggerName);
-                }
-
-                // Heider diam melakukan cast/pose selama durasi lingerTime sebelum menghilang
-                yield return new WaitForSeconds(lingerTime);
             }
         }
+    }
 
-        // === FASE 4: FADE OUT & DESTROY ===
-        t = 0;
-        while (t < fadeDuration)
+    private IEnumerator ExecuteDashSkill()
+    {
+        Vector2 dashDirection = (faceDir == 0) ? Vector2.right : Vector2.left;
+        List<Collider2D> damagedEnemies = new List<Collider2D>();
+        float dashTimer = 0f;
+
+        while (dashTimer < dashDuration)
         {
-            t += Time.deltaTime;
-            float alpha = Mathf.Lerp(1f, 0f, t / fadeDuration);
-            sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, alpha);
+            dashTimer += Time.deltaTime;
+
+            if (rb != null)
+                rb.linearVelocity = dashDirection * dashSpeed;
+            else
+                transform.position += (Vector3)(dashDirection * dashSpeed * Time.deltaTime);
+
+            Collider2D[] hitMusuh = Physics2D.OverlapCircleAll(transform.position, dashRadius, activeSkill.enemyLayer);
+
+            if (hitMusuh.Length == 0)
+            {
+                Collider2D[] semuaSekitar = Physics2D.OverlapCircleAll(transform.position, dashRadius);
+                List<Collider2D> daftarMusuhTag = new List<Collider2D>();
+                foreach (Collider2D col in semuaSekitar)
+                {
+                    if (col.CompareTag("Enemy")) daftarMusuhTag.Add(col);
+                }
+                if (daftarMusuhTag.Count > 0) hitMusuh = daftarMusuhTag.ToArray();
+            }
+
+            foreach (Collider2D musuh in hitMusuh)
+            {
+                if (!damagedEnemies.Contains(musuh))
+                {
+                    damagedEnemies.Add(musuh);
+
+                    Enemy enemyScript = musuh.GetComponent<Enemy>();
+                    if (enemyScript == null) enemyScript = musuh.GetComponentInParent<Enemy>();
+
+                    if (enemyScript != null)
+                    {
+                        enemyScript.EnemyHit(dashDamage, dashDirection, 5f);
+                    }
+                }
+            }
+
             yield return null;
         }
 
-        Destroy(gameObject);
+        if (rb != null) rb.linearVelocity = Vector2.zero;
     }
 
-    // Menggambar area hit/deteksi dash di Scene View Unity biar gampang kamu debug ukurannya
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, 1.0f);
+        Gizmos.DrawWireSphere(transform.position, dashRadius);
     }
 }

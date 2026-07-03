@@ -223,6 +223,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private AudioClip smashExplodeSFX;
     [SerializeField] private AudioClip barrageShootSFX;
 
+    [HideInInspector] public bool isCutsceneMode = false;
+
     private float xAxis;
 
     void Start()
@@ -251,6 +253,8 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        if (isCutsceneMode) return;
+
         xAxis = Input.GetAxisRaw("Horizontal");
         HandleStaminaRegen();
         if (isCasting) return;

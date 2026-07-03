@@ -129,10 +129,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeiderSupport
   fadeDuration: 0.3
-  castDelay: 0.3
   lingerTime: 0.5
-  energyBallPrefab: {fileID: 9197419208224106195, guid: eeb8948980737b34ab38391c9f6989b1, type: 3}
+  castDelay: 0.3
   firePoint: {fileID: 3073480515756517578}
+  projectilePiercesObstacles: 0
+  projectileImpactDamage: 45
+  singleTargetImpactPrefab: {fileID: 1919482365455281687, guid: efe46cd6bc2d7564b8726460cd4644cd, type: 3}
+  singleTargetVFXLifetime: 1
+  projectileIsAOE: 1
+  aoeRadius: 2.5
+  aoeDamage: 60
+  aoeExplosionPrefab: {fileID: 3281629748748641327, guid: 95ad7c70c9e3ac6478b3f0ff9033c7dc, type: 3}
+  aoeExplosionLifetime: 0.45
+  dashSpeed: 18
+  dashDuration: 0.25
+  dashDamage: 35
+  dashRadius: 1.3
 --- !u!1 &3639645499074021629
 GameObject:
   m_ObjectHideFlags: 0

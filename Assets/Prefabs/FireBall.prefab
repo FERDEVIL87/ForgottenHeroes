@@ -129,11 +129,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a614afb06369f6b46b0a7a29b5354982, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  damage: 2
-  hitForce: 10
   speed: 10
-  lifetime: 2
-  impactEffectPrefab: {fileID: 4099660918959533163, guid: 95d2c4f016b8dde45b1211723f72546d, type: 3}
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 512
 --- !u!61 &8660164600481989312
 BoxCollider2D:
   m_ObjectHideFlags: 0
