@@ -30,7 +30,7 @@ public class Checkpoint : MonoBehaviour
 
     void Update()
     {
-        if (isPlayerNear && Input.GetKeyDown(KeyCode.E) && !isMenuOpen)
+        if (isPlayerNear && Input.GetButtonDown("Interact") && !isMenuOpen)
         {
             OpenMenu();
         }

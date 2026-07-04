@@ -30,15 +30,50 @@ public class SupportManager : MonoBehaviour
         }
         Instance = this;
 
-        // =====================================================================
-        // PERBAIKAN: Muat data di Awake agar siap SEBELUM UI (OnEnable) berjalan
-        // =====================================================================
+        // Muat data di Awake agar siap SEBELUM UI (OnEnable) berjalan
         LoadEquippedSupport();
     }
 
     // Fungsi Start() dikosongkan karena logika load sudah pindah ke Awake
     private void Start()
     {
+    }
+
+    // Fungsi pendukung untuk unlock karakter dari NPC
+    public void UnlockCharacter(string characterName)
+    {
+        PlayerPrefs.SetInt("Unlocked_Support_" + characterName, 1);
+        PlayerPrefs.Save();
+        Debug.Log($"[UNLOCK SUCCESS] Karakter {characterName} sekarang tersedia!");
+    }
+
+    // Fungsi pengecekan status unlock karakter
+    public bool IsCharacterUnlocked(string characterName)
+    {
+        return PlayerPrefs.GetInt("Unlocked_Support_" + characterName, 0) == 1;
+    }
+
+    // Fungsi pembersihan data untuk Tombol New Game
+    public void ResetAllSupportDataForNewGame()
+    {
+        foreach (SupportCharacterSO character in allSupportDatabase)
+        {
+            if (character != null)
+            {
+                PlayerPrefs.DeleteKey("Unlocked_Support_" + character.characterName);
+                PlayerPrefs.DeleteKey("NPC_Unlocked_Event_" + character.characterName);
+            }
+        }
+
+        PlayerPrefs.DeleteKey("SavedSupportName");
+        PlayerPrefs.DeleteKey("SavedSkillName");
+        PlayerPrefs.DeleteKey("HasSaveData");
+
+        equippedSupport = null;
+        equippedSkill = null;
+
+        PlayerPrefs.Save();
+        Debug.Log("[RESET SUCCESS] Semua data Kameo berhasil dibersihkan untuk New Game!");
     }
 
     public void CallSupportWithPosition(Vector3 spawnPos, int faceDir)
@@ -51,7 +86,7 @@ public class SupportManager : MonoBehaviour
             {
                 if (!PlayerController.Instance.HasEnoughStamina(summonEnergyCost))
                 {
-                    Debug.LogWarning("Mana tidak cukup untuk memanggil Kameo!");
+                    Debug.LogWarning("Stamina/Mana tidak cukup untuk memanggil Kameo!");
                     return;
                 }
                 PlayerController.Instance.UseStamina(summonEnergyCost);
@@ -86,15 +121,19 @@ public class SupportManager : MonoBehaviour
         isCallingSupport = false;
     }
 
-    // =====================================================================
-    // FITUR TAMBAHAN: Log Debug biar kamu bisa pantau isi datanya di Console
-    // =====================================================================
     public void SaveEquippedSupport()
     {
         if (equippedSupport != null)
+        {
             PlayerPrefs.SetString("SavedSupportName", equippedSupport.characterName);
+
+            // PERBAIKAN: Buat flag HasSaveData di sini agar sistem tahu game ini sudah memiliki data aktif
+            PlayerPrefs.SetInt("HasSaveData", 1);
+        }
         else
+        {
             PlayerPrefs.DeleteKey("SavedSupportName");
+        }
 
         if (equippedSkill != null)
             PlayerPrefs.SetString("SavedSkillName", equippedSkill.skillName);
@@ -107,7 +146,10 @@ public class SupportManager : MonoBehaviour
 
     public void LoadEquippedSupport()
     {
-        if (!PlayerPrefs.HasKey("HasSaveData")) return;
+        // =====================================================================
+        // PERBAIKAN UTAMA: Baris 'if (!PlayerPrefs.HasKey("HasSaveData")) return;' 
+        // TELAH DIHAPUS agar system tidak mengosongkan slot memory saat keluar menu api unggun.
+        // =====================================================================
 
         string savedCharName = PlayerPrefs.GetString("SavedSupportName", "");
         string savedSkillName = PlayerPrefs.GetString("SavedSkillName", "");
@@ -142,6 +184,11 @@ public class SupportManager : MonoBehaviour
             {
                 equippedSkill = null;
             }
+        }
+        else
+        {
+            equippedSupport = null;
+            equippedSkill = null;
         }
 
         Debug.Log($"[LOAD SUCCESS] Berhasil memuat dari Save Data -> Karakter: {(equippedSupport != null ? equippedSupport.characterName : "Null")}, Skill: {(equippedSkill != null ? equippedSkill.skillName : "Null")}");

@@ -23,8 +23,17 @@ public class RestMenuUI : MonoBehaviour
     private void OnEnable()
     {
         // =====================================================================
-        // PERBAIKAN: Sinkronisasikan halaman UI dengan data yang sedang aktif
+        // FILTER MODULAR: Hanya tampilkan karakter yang sudah di-unlock player
         // =====================================================================
+        if (SupportManager.Instance != null)
+        {
+            // Ambil database mentah dari SupportManager, lalu filter ke list lokal UI
+            // Catatan: Pastikan di Inspector RestMenuUI, list 'allCharacters' dikosongkan/biarkan diisi otomatis oleh kode ini
+            allCharacters = SupportManager.Instance.allSupportDatabase.FindAll(
+                c => SupportManager.Instance.IsCharacterUnlocked(c.characterName)
+            );
+        }
+
         SyncUIWithEquippedData();
         UpdateUI();
     }

@@ -136,7 +136,7 @@ MonoBehaviour:
   projectileImpactDamage: 45
   singleTargetImpactPrefab: {fileID: 1919482365455281687, guid: efe46cd6bc2d7564b8726460cd4644cd, type: 3}
   singleTargetVFXLifetime: 1
-  projectileIsAOE: 1
+  projectileIsAOE: 0
   aoeRadius: 2.5
   aoeDamage: 60
   aoeExplosionPrefab: {fileID: 3281629748748641327, guid: 95ad7c70c9e3ac6478b3f0ff9033c7dc, type: 3}

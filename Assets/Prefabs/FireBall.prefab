@@ -132,7 +132,7 @@ MonoBehaviour:
   speed: 10
   obstacleLayer:
     serializedVersion: 2
-    m_Bits: 512
+    m_Bits: 520
 --- !u!61 &8660164600481989312
 BoxCollider2D:
   m_ObjectHideFlags: 0

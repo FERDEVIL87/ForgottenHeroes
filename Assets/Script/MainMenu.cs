@@ -18,7 +18,6 @@ public class MainMenu : MonoBehaviour
         if (settingsPanel != null) settingsPanel.SetActive(false);
 
         // FITUR CONTINUE: Cek apakah ada data save-an sebelumnya
-        // Di sini kita pakai contoh PlayerPrefs. Jika ada data "HasSaveData", tombol Continue aktif.
         if (continueButton != null)
         {
             if (PlayerPrefs.HasKey("HasSaveData"))
@@ -35,8 +34,28 @@ public class MainMenu : MonoBehaviour
     // 1. FUNGSI PLAY (Mulai Game Baru)
     public void PlayGame()
     {
-        // Hapus data lama jika player memilih main dari awal lagi
+        // =====================================================================
+        // PERBAIKAN UTAMA: RESET DATA LANGSUNG VIA PLAYERPREFS DI MAIN MENU
+        // =====================================================================
+        // 1. Hapus tanda bukti unlock karakter Heider agar terkunci kembali
+        PlayerPrefs.DeleteKey("Unlocked_Support_Heider");
+
+        // 2. Hapus flag event dialog NPC Heider agar dia muncul kembali di peta goa
+        PlayerPrefs.DeleteKey("NPC_Unlocked_Event_Heider");
+
+        // 3. Kosongkan slot kameo yang sedang dipakai agar tidak otomatis terpasang
+        PlayerPrefs.DeleteKey("SavedSupportName");
+        PlayerPrefs.DeleteKey("SavedSkillName");
+
+        // 4. Hapus flag global data save utama
         PlayerPrefs.DeleteKey("HasSaveData");
+
+        // Jika Anda memiliki karakter kameo selain Heider di masa depan, 
+        // tinggal tambahkan baris DeleteKey untuk nama karakter tersebut di sini.
+        // Atau jika ingin menghapus seluruh data game tanpa sisa, gunakan: PlayerPrefs.DeleteAll();
+
+        PlayerPrefs.Save();
+        Debug.Log("[NEW GAME] Semua data Kameo Heider dan Event NPC berhasil dibersihkan dari Main Menu!");
 
         // Load scene game utama (Index 1 di Build Settings)
         SceneManager.LoadScene(1);
@@ -60,9 +79,9 @@ public class MainMenu : MonoBehaviour
     }
 
     // 4. FUNGSI EXIT (Keluar dari Game)
-    public void ExitGame()
+    public void QuitGame()
     {
-        Debug.Log("Player keluar dari game!");
-        Application.Quit(); // Fungsi ini bekerja setelah game di-build (.exe / .apk)
+        Debug.Log("Game Ditutup!"); // Hanya muncul di console Unity Editor
+        Application.Quit();         // Menutup game saat sudah dicompile (.exe / .apk)
     }
 }
