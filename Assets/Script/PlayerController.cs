@@ -424,6 +424,10 @@ public class PlayerController : MonoBehaviour
     {
         // === FIX LOMPAT DI SINI ===
         // Suara hanya akan diputar TEPAT saat energi lompat dikeluarkan, bukan pas lagi melayang!
+
+        // ✅ CEK BLOCK - TIDAK BISA LOMPAT SAAT BLOCK
+        if (isBlocking) return;
+
         if (jumpBufferCounter > 0f && (coyoteTimeCounter > 0f || jumpsRemaining > 0))
         {
             // === TAMBAHAN BARU: Cek & Kurangi Stamina sebelum lompat ===
