@@ -1,3 +1,4 @@
+using System.Collections; // PENTING: Untuk Coroutine (IEnumerator)
 using UnityEngine;
 
 public class EnemyAIBase : Enemy
@@ -29,12 +30,26 @@ public class EnemyAIBase : Enemy
     [SerializeField] protected float attackDamage = 10f;
     [SerializeField] protected float attackKnockback = 15f;
 
-    // === BARU: SETTING SERANGAN BERBASIS ANIMASI ===
-    [SerializeField] protected float attackRange = 1.5f;     // Jarak minimal musuh untuk memukul
+    // === MODIFIKASI JANGKAUAN SERANG ===
+    [Tooltip("Jarak dari jauh di mana musuh mulai bersiap/ancang-ancang untuk menerjang player")]
+    [SerializeField] protected float attackRange = 4f;       // DIUBAH JADI LEBIH JAUH (Misal: 3.5 - 5f)
     [SerializeField] protected float attackCooldown = 2f;    // Jeda waktu antar serangan (detik)
     [SerializeField] protected Transform attackPoint;        // Objek kosong penanda titik pusat pukulan
     [SerializeField] protected float attackRadius = 0.6f;     // Radius bulatan jangkauan hit pedang/tangan
     [SerializeField] protected LayerMask playerLayer;        // Pilih layer "Player"
+
+    // === RANDOM ATTACK & LUNGE SETTINGS ===
+    [Header("Random Attack & Lunge Timing")]
+    [Tooltip("Waktu minimal musuh menahan tebasannya / ancang-ancang (detik)")]
+    [SerializeField] protected float minPreAttackDelay = 0.1f;
+    [Tooltip("Waktu maksimal musuh menahan tebasannya / ancang-ancang (detik)")]
+    [SerializeField] protected float maxPreAttackDelay = 0.6f;
+
+    [Tooltip("Kekuatan dorongan maju musuh saat menerjang dari jauh")]
+    [SerializeField] protected float attackLungeForce = 12f;  // DINAIKKAN nilainya agar dorongannya cepat dan jauh!
+
+    protected bool isPreparingAttack = false;
+    protected Coroutine currentAttackRoutine; // Untuk menyimpan dan menghentikan persiapan serangan
 
     protected float attackCooldownTimer = 0f;
     protected bool isAttacking = false;
@@ -67,7 +82,7 @@ public class EnemyAIBase : Enemy
         if (isDead) return;
         if (isRecoiling) return;
 
-        // === PERBAIKAN: Hentikan AI berpikir jika sedang ter-Stun akibat Parry ===
+        // Hentikan AI berpikir jika sedang ter-Stun akibat Parry
         if (isStunned) return;
 
         // Hitung mundur timer cooldown lompat
@@ -146,8 +161,6 @@ public class EnemyAIBase : Enemy
         float dirToPlayer = playerTransform.position.x - transform.position.x;
         bool playerToRight = dirToPlayer > 0;
 
-        // PERBAIKAN 1: Jangan ijinkan musuh otomatis berbalik arah jika sedang di atas kepala player
-        // Ini untuk menghindari musuh gemetar (jittering) bolak-balik
         if (!isStandingOnPlayer)
         {
             if (playerToRight != facingRight)
@@ -158,7 +171,7 @@ public class EnemyAIBase : Enemy
 
         float distanceToPlayer = Vector2.Distance(transform.position, playerTransform.position);
 
-        // PERBAIKAN 2: Jika di atas kepala player, jangan menyerang dulu. Fokus meluncur turun.
+        // === DETEKSI SERANG DARI JAUH ===
         if (distanceToPlayer <= attackRange && attackCooldownTimer <= 0f && !isStandingOnPlayer)
         {
             StartMeleeAttack();
@@ -169,15 +182,12 @@ public class EnemyAIBase : Enemy
 
         if (isStandingOnPlayer)
         {
-            // 1. TAMBAH KECEPATAN: Naikkan multiplier menjadi 2.5f agar dorongan menjauhnya lebih jauh dan cepat
             moveX = facingRight ? moveSpeed * 2.5f : -moveSpeed * 2.5f;
         }
 
         float moveY = rb.linearVelocity.y;
 
-        // LOGIKA LOMPAT
         bool isGrounded = Mathf.Abs(moveY) < 0.1f;
-        // 2. KUNCI LOMPATAN: Jangan biarkan lompat kalau sedang di atas player
         bool canJump = isGrounded && (jumpCooldownTimer <= 0f) && !isStandingOnPlayer;
 
         if (canJump)
@@ -209,70 +219,104 @@ public class EnemyAIBase : Enemy
             }
         }
 
-        // 3. BYPASS REM OTOMATIS: Tambahkan kondisi !isStandingOnPlayer
-        // Supaya kecepatan X tidak di-nol-kan selama musuh berusaha menjauh dari kepala player
         if (Mathf.Abs(dirToPlayer) < 0.8f && !isStandingOnPlayer)
             rb.linearVelocity = new Vector2(0, moveY);
         else
             rb.linearVelocity = new Vector2(moveX, moveY);
     }
 
-    // === PERBAIKAN: Override fungsi hit agar status serang di-reset saat musuh dipukul/di-parry ===
     public override void EnemyHit(float _damage, Vector2 _hitDirection, float _recoilStrength)
     {
-        // Paksa reset status menyerang agar tidak mengunci pergerakan musuh selamanya
+        // Batal serang jika musuh dipukul player saat bersiap
         isAttacking = false;
+        isPreparingAttack = false;
 
-        // Panggil logika dasar dari Enemy.cs (untuk menangani pengurangan darah, knockback, dan StunRoutine)
+        if (currentAttackRoutine != null)
+        {
+            StopCoroutine(currentAttackRoutine);
+            currentAttackRoutine = null;
+        }
+
         base.EnemyHit(_damage, _hitDirection, _recoilStrength);
     }
 
-    // === BARU: FUNGSI-FUNGSI EKSTENSIONAL UNTUK ATTACK ===
     protected void StartMeleeAttack()
     {
+        if (!isPreparingAttack)
+        {
+            currentAttackRoutine = StartCoroutine(RandomizedAttackRoutine());
+        }
+    }
+
+    protected virtual IEnumerator RandomizedAttackRoutine()
+    {
+        isPreparingAttack = true;
         isAttacking = true;
-        rb.linearVelocity = new Vector2(0, rb.linearVelocity.y); // Berhenti melangkah maju saat mengayunkan senjata
+
+        // 1. AN_CANG-ANCANG: Hentikan langkah saat musuh bersiap memukul (mengecoh parry player dari jauh)
+        rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
 
         if (anim != null)
         {
             anim.SetBool("isRunning", false);
-            anim.SetTrigger("Attack"); // Memicu parameter Trigger "Attack" di Animator
         }
 
-        attackCooldownTimer = attackCooldown;
+        // Jeda acak ancang-ancang
+        float randomDelay = Random.Range(minPreAttackDelay, maxPreAttackDelay);
+        yield return new WaitForSeconds(randomDelay);
+
+        // 2. EKSEKUSI TERJANGAN DAN SERANGAN
+        if (!isDead && !isStunned)
+        {
+            if (playerTransform != null)
+            {
+                // Re-tracking arah player sebelum melesat maju
+                float dirToPlayer = playerTransform.position.x - transform.position.x;
+                bool playerToRight = dirToPlayer > 0;
+
+                if (playerToRight != facingRight)
+                {
+                    Flip();
+                }
+
+                // LUNGE: Melesat maju dengan kecepatan tinggi menuju player!
+                float lungeDir = facingRight ? 1f : -1f;
+                rb.linearVelocity = new Vector2(lungeDir * attackLungeForce, rb.linearVelocity.y);
+            }
+
+            // Putar animasi tebasan (Pastikan hitboxes/Animation Event kamu berada di frame tebasan yang pas)
+            if (anim != null)
+            {
+                anim.SetTrigger("Attack");
+            }
+            attackCooldownTimer = attackCooldown;
+        }
+
+        isPreparingAttack = false;
+        currentAttackRoutine = null;
     }
 
-    // PENTING: Fungsi ini wajib dipasang pada frame ayunan pedang lewat Animation Event di Unity!
     public void AnimationTriggerDamage()
     {
         if (isDead || attackPoint == null) return;
 
-        // Ambil SEMUA objek (tanpa peduli layer apa pun) yang masuk ke dalam lingkaran pukulan
         Collider2D[] hitObjects = Physics2D.OverlapCircleAll(attackPoint.position, attackRadius);
 
-        // Cek satu-per-satu objek yang kena
         foreach (Collider2D hit in hitObjects)
         {
-            // Jika objek tersebut memiliki Tag "Player"
             if (hit.CompareTag("Player"))
             {
                 PlayerController player = hit.GetComponent<PlayerController>();
                 if (player != null)
                 {
-                    // Hitung arah dorongan (knockback)
                     Vector2 hitDir = (player.transform.position - transform.position).normalized;
-
-                    // Berikan damage
                     player.TakeDamage(attackDamage, hitDir, attackKnockback);
-
-                    // Hentikan pencarian karena Player sudah ketemu dan dipukul (agar tidak double hit)
                     break;
                 }
             }
         }
     }
 
-    // PENTING: Fungsi ini wajib dipasang pada frame paling akhir animasi menyerang Anda!
     public void AnimationTriggerEndAttack()
     {
         isAttacking = false;
@@ -298,7 +342,6 @@ public class EnemyAIBase : Enemy
     {
         if (anim != null)
         {
-            // === BARU: Tambahkan kondisi isAttacking agar animasi lari/lompat tidak menimpa animasi menyerang ===
             if (isRecoiling || isAttacking)
             {
                 anim.SetBool("isRunning", false);
@@ -321,7 +364,6 @@ public class EnemyAIBase : Enemy
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(transform.position, new Vector3(loseDetectionRange * 2, (verticalDetectionRange + 1.5f) * 2, 1));
 
-        // Menggambar garis deteksi bawah kaki berwarna hijau
         Gizmos.color = Color.green;
         Gizmos.DrawLine(transform.position, transform.position + (Vector3.down * headCheckDistance));
 
@@ -338,7 +380,10 @@ public class EnemyAIBase : Enemy
             Gizmos.DrawLine(ledgeCheckPoint.position, (Vector2)ledgeCheckPoint.position + (Vector2.down * ledgeCheckDistance));
         }
 
-        // === BARU: Membantu visualisasi bulatan jangkauan serang berwarna MERAH di Scene View ===
+        // Mengganti warna jangkauan deteksi serangan awal (attackRange) menjadi MAGENTA agar mudah dibedakan
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawWireSphere(transform.position, attackRange);
+
         if (attackPoint != null)
         {
             Gizmos.color = Color.red;
@@ -346,24 +391,17 @@ public class EnemyAIBase : Enemy
         }
     }
 
-    // === BARU: MENONAKTIFKAN CONTACT DAMAGE LAMA ===
     protected virtual void OnCollisionEnter2D(Collision2D collision)
     {
-        // Kode sengaja dikosongkan agar musuh tidak lagi merusak player hanya karena bersentuhan badan.
-        // Sekarang damage murni diatur penuh dari frame animasi tebasan pedang/pukulan di atas!
     }
 
     protected void CheckIfStandingOnPlayer()
     {
         if (playerTransform == null) return;
 
-        // Hitung jarak X dan Y antara musuh dan player
         float jarakX = Mathf.Abs(transform.position.x - playerTransform.position.x);
         float jarakY = transform.position.y - playerTransform.position.y;
 
-        // Cek apakah musuh berada sangat dekat secara horizontal (X < 0.8f)
-        // DAN posisinya berada di atas player (Y antara 0.5f sampai 2.5f)
-        // Sesuaikan angka 2.5f dengan tinggi sprite karaktermu jika dirasa kurang pas
         if (jarakX < 0.8f && jarakY > 0.5f && jarakY < 2.5f)
         {
             isStandingOnPlayer = true;

@@ -34,28 +34,24 @@ public class MainMenu : MonoBehaviour
     // 1. FUNGSI PLAY (Mulai Game Baru)
     public void PlayGame()
     {
-        // =====================================================================
-        // PERBAIKAN UTAMA: RESET DATA LANGSUNG VIA PLAYERPREFS DI MAIN MENU
-        // =====================================================================
-        // 1. Hapus tanda bukti unlock karakter Heider agar terkunci kembali
+        // === KODE BERSIH-BERSIH ASLI ANDA ===
         PlayerPrefs.DeleteKey("Unlocked_Support_Heider");
-
-        // 2. Hapus flag event dialog NPC Heider agar dia muncul kembali di peta goa
         PlayerPrefs.DeleteKey("NPC_Unlocked_Event_Heider");
-
-        // 3. Kosongkan slot kameo yang sedang dipakai agar tidak otomatis terpasang
         PlayerPrefs.DeleteKey("SavedSupportName");
         PlayerPrefs.DeleteKey("SavedSkillName");
-
-        // 4. Hapus flag global data save utama
         PlayerPrefs.DeleteKey("HasSaveData");
 
-        // Jika Anda memiliki karakter kameo selain Heider di masa depan, 
-        // tinggal tambahkan baris DeleteKey untuk nama karakter tersebut di sini.
-        // Atau jika ingin menghapus seluruh data game tanpa sisa, gunakan: PlayerPrefs.DeleteAll();
+        // =====================================================================
+        // TAMBAHAN BARU: BERSIHKAN DATA TRANSISI LEVEL & POSISI LAMA
+        // =====================================================================
+        PlayerPrefs.DeleteKey("SavedHP");
+        PlayerPrefs.DeleteKey("SavedEnergy");
+        PlayerPrefs.DeleteKey("PlayerPosX"); // Bersihkan sisa koordinat checkpoint lama
+        PlayerPrefs.DeleteKey("PlayerPosY");
+        // =====================================================================
 
         PlayerPrefs.Save();
-        Debug.Log("[NEW GAME] Semua data Kameo Heider dan Event NPC berhasil dibersihkan dari Main Menu!");
+        Debug.Log("[NEW GAME] Semua data Kameo, Event, HP, dan Energy berhasil dibersihkan!");
 
         // Load scene game utama (Index 1 di Build Settings)
         SceneManager.LoadScene(1);

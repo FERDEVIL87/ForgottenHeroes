@@ -118,8 +118,7 @@ public class Checkpoint : MonoBehaviour
         PlayerPrefs.SetFloat("PlayerPosX", transform.position.x);
         PlayerPrefs.SetFloat("PlayerPosY", transform.position.y);
         PlayerPrefs.SetInt("HasSaveData", 1);
-        PlayerPrefs.Save();
-        Debug.Log("Game Saved!");
+        // PlayerPrefs.Save(); // Pindahkan ini ke bawah setelah semua data beres diisi
 
         // 2. SPAWN EFEK PREFAB
         if (saveEffectPrefab != null)
@@ -132,7 +131,18 @@ public class Checkpoint : MonoBehaviour
         {
             PlayerController.Instance.health = PlayerController.Instance.maxHealth;
             PlayerController.Instance.currentEnergy = PlayerController.Instance.maxEnergy;
+
+            // =====================================================================
+            // FIX BUG CHECKPOINT: UPDATE PLAYERPREFS MENJADI PENUH KEMBALI
+            // Agar saat scene di-reload, PlayerController memuat HP & Mana yang penuh!
+            // =====================================================================
+            PlayerPrefs.SetInt("SavedHP", PlayerController.Instance.maxHealth);
+            PlayerPrefs.SetInt("SavedEnergy", PlayerController.Instance.maxEnergy);
         }
+
+        // Simpan semua data sekaligus ke dalam sistem
+        PlayerPrefs.Save();
+        Debug.Log("Game Saved with Full HP & Mana!");
 
         // 4. JEDA TIMING 
         yield return new WaitForSecondsRealtime(restDelay); // Gunakan WaitForSecondsRealtime karena timeScale = 0

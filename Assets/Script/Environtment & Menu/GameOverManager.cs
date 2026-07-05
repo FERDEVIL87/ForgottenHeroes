@@ -38,10 +38,19 @@ public class GameOverManager : MonoBehaviour
     }
 
     // Fungsi untuk Tombol RESTART
+    // Fungsi untuk Tombol RESTART
     public void RestartGame()
     {
         // Kembalikan waktu normal sebelum me-reload scene
         Time.timeScale = 1f;
+
+        // =====================================================================
+        // TAMBAHAN BARU: HAPUS HP & ENERGY BIAR SPAWN DI CHECKPOINT DENGAN HP PENUH
+        // =====================================================================
+        PlayerPrefs.DeleteKey("SavedHP");
+        PlayerPrefs.DeleteKey("SavedEnergy");
+        PlayerPrefs.Save();
+        // =====================================================================
 
         // Mengulang Scene Game yang sedang aktif saat ini
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
@@ -53,7 +62,15 @@ public class GameOverManager : MonoBehaviour
         // Kembalikan waktu normal sebelum kembali ke menu
         Time.timeScale = 1f;
 
-        // PERUBAHAN: Diubah menjadi indeks 0 sesuai struktur di MainMenu.cs Anda
+        // =====================================================================
+        // TAMBAHAN BARU: HAPUS SISA DATA MATI AGAR SAAT DI-CONTINUE TIDAK BUG
+        // =====================================================================
+        PlayerPrefs.DeleteKey("SavedHP");
+        PlayerPrefs.DeleteKey("SavedEnergy");
+        PlayerPrefs.Save();
+        // =====================================================================
+
+        // Kembali ke Main Menu (Index 0)
         SceneManager.LoadScene(0);
     }
 }

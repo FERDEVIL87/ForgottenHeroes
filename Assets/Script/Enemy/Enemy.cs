@@ -115,6 +115,11 @@ public class Enemy : MonoBehaviour
         // =========================================================
         currentHealth -= _damage;
         Debug.Log(gameObject.name + " Terkena Hit! Sisa Darah: " + currentHealth);
+        if (DamagePopupManager.Instance != null)
+        {
+            // GANTI 'damage' menjadi 'dmg' (sesuaikan dengan parameter di atas)
+            DamagePopupManager.Instance.CreatePopup(transform.position, _damage, Color.yellow);
+        }
 
         // === TAMBAHAN PENTING: Cek apakah musuh mati setelah kena damage ===
         if (currentHealth <= 0)

@@ -15,6 +15,22 @@ public class PlayerController : MonoBehaviour
             return;
         }
         Instance = this;
+
+        // =====================================================================
+        // FIX BUG UI DARAH: PINDAHKAN LOAD DATA KE AWAKE
+        // Agar data HP & Energi sudah siap 100% SEBELUM UI membacanya di Start()
+        // =====================================================================
+        if (PlayerPrefs.HasKey("SavedHP"))
+        {
+            health = PlayerPrefs.GetInt("SavedHP");
+            currentEnergy = PlayerPrefs.GetInt("SavedEnergy");
+        }
+        else
+        {
+            // Jika baru mulai New Game / tidak ada save-an
+            health = maxHealth;
+            // currentEnergy = 0; // Sesuaikan jika energi awal harus 0 atau penuh
+        }
     }
 
     private Rigidbody2D rb;
@@ -76,7 +92,6 @@ public class PlayerController : MonoBehaviour
     [Header("Block & Parry Settings")]
     public bool isBlocking = false;
     public bool isParrying = false;
-    private bool isBlockHitLocked = false;
 
     [SerializeField] private float parryTimeWindow = 0.2f; // Waktu (detik) untuk parry sukses
     private float parryTimer;
@@ -223,32 +238,46 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private AudioClip smashExplodeSFX;
     [SerializeField] private AudioClip barrageShootSFX;
 
+    [Header("Damage UI Effect")]
+    public GameObject damagePopupPrefab;
+
     [HideInInspector] public bool isCutsceneMode = false;
 
     private float xAxis;
 
     void Start()
     {
-        // === TAMBAHAN SISTEM CHECKPOINT ===
-        // Cek apakah ada data save ("HasSaveData") yang aktif
-        // Ini akan bernilai True jika kita klik Continue, atau Restart setelah mati.
-        // Ini bernilai False jika kita klik "Play/New Game" dari Main Menu.
-        if (PlayerPrefs.HasKey("HasSaveData"))
-        {
-            // Ambil koordinat terakhir
-            float savedX = PlayerPrefs.GetFloat("PlayerPosX");
-            float savedY = PlayerPrefs.GetFloat("PlayerPosY");
-
-            // Pindahkan player ke koordinat tersebut
-            transform.position = new Vector3(savedX, savedY, transform.position.z);
-        }
+        // Pastikan scene mulai dengan waktu normal (Fix bug slow-mo)
+        Time.timeScale = 1f;
 
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();
-        Health = maxHealth;
         currentStamina = maxStamina;
         defaultGravity = rb.gravityScale;
+
+        // Update UI untuk memastikan gambar sinkron (Opsional berjaga-jaga)
+        if (onManaChangedCallback != null) onManaChangedCallback.Invoke();
+        if (onHealthChangedCallback != null) onHealthChangedCallback.Invoke();
+
+        // =====================================================================
+        // LOGIKA CHECKPOINT POSISI DAN RE-SPAWN (SPAWNPOINT) 
+        // =====================================================================
+        if (PlayerPrefs.HasKey("HasSaveData") && PlayerPrefs.HasKey("PlayerPosX"))
+        {
+            float savedX = PlayerPrefs.GetFloat("PlayerPosX");
+            float savedY = PlayerPrefs.GetFloat("PlayerPosY");
+
+            transform.position = new Vector3(savedX, savedY, transform.position.z);
+        }
+        else
+        {
+            GameObject spawn = GameObject.Find("SpawnPoint");
+            if (spawn != null)
+            {
+                transform.position = new Vector3(spawn.transform.position.x, spawn.transform.position.y, transform.position.z);
+            }
+        }
     }
 
     void Update()
@@ -620,6 +649,11 @@ public class PlayerController : MonoBehaviour
         CancelCasting(); // Menghentikan aktivitas magic/skill kalau player kena damage
 
         Health -= Mathf.RoundToInt(_damage);
+        //if (DamagePopupManager.Instance != null)
+        //{
+            // GANTI 'damageAmount' menjadi 'damage' (sesuaikan dengan parameter di atas)
+            //DamagePopupManager.Instance.CreatePopup(transform.position, damage, Color.red);
+        //}
 
         anim.SetTrigger("TakeDamage");
         PlaySFX(hurtSFX);
@@ -657,18 +691,6 @@ public class PlayerController : MonoBehaviour
         yield return new WaitForSeconds(duration);
 
         isBlockLocked = false;  // Buka kembali pengunci
-    }
-
-    private IEnumerator BlockHitAnimationLockRoutine(float duration)
-    {
-        isBlockHitLocked = true;           // Aktifkan pengunci hit
-        isBlocking = false;                // Matikan status block di script sementara
-        anim.SetBool("isBlocking", false); // Matikan paksa animasi loop menahan di Animator
-
-        // Berikan waktu agar animasi BlockHit selesai berputar (misal 0.25 detik)
-        yield return new WaitForSeconds(duration);
-
-        isBlockHitLocked = false;          // Buka kembali kunci hit
     }
 
     void PlayerDie() {
@@ -1011,16 +1033,31 @@ public class PlayerController : MonoBehaviour
             float randomY = Random.Range(-barrageSpreadY, barrageSpreadY);
             Vector3 spawnPos = fireBallSpawnPoint.position + new Vector3(0, randomY, 0);
 
-            // PUTAR SUARA TEPAT SEBELUM SPAWN
             PlaySFX(barrageShootSFX);
 
+            // 1. Munculkan bola api
             GameObject newFireBall = Instantiate(fireBallPrefab, spawnPos, fireBallSpawnPoint.rotation);
-            float randomZ = Random.Range(-barrageSpreadAngle, barrageSpreadAngle);
 
+            // 2. Atur rotasinya
+            float randomZ = Random.Range(-barrageSpreadAngle, barrageSpreadAngle);
             if (transform.localScale.x < 0)
                 newFireBall.transform.eulerAngles = new Vector3(0, 180, randomZ);
             else
                 newFireBall.transform.eulerAngles = new Vector3(0, 0, randomZ);
+
+            // === TAMBAHKAN KODE INI ===
+            // 3. Ambil script FireBall dan beri tahu damagenya!
+            FireBall fbScript = newFireBall.GetComponent<FireBall>();
+            if (fbScript != null)
+            {
+                // Sesuaikan 15f dengan besar damage per peluru Barrage yang Anda inginkan.
+                // Jika Anda punya variabel barrageDamage, ganti angka 15f menjadi barrageDamage
+                fbScript.SetSingleTargetStats(15f, null, 1f);
+
+                // Pastikan bukan tipe peluru AOE (kecuali memang mau dibikin meledak)
+                // fbScript.SetObstacleBehavior(false); 
+            }
+            // ===========================
 
             yield return new WaitForSeconds(barrageInterval);
         }
