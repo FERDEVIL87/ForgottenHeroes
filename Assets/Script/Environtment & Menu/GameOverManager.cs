@@ -73,4 +73,10 @@ public class GameOverManager : MonoBehaviour
         // Kembali ke Main Menu (Index 0)
         SceneManager.LoadScene(0);
     }
+
+    // Tambahkan ini di GameOverManager.cs untuk mengecek apakah panel game over sedang aktif
+    public bool IsGameOverActive()
+    {
+        return gameOverPanel != null && gameOverPanel.activeSelf;
+    }
 }
