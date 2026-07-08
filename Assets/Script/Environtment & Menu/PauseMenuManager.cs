@@ -1,14 +1,13 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // Diperlukan untuk pindah scene
+using UnityEngine.SceneManagement;
 
 public class PauseMenuManager : MonoBehaviour
 {
-    // Singleton agar bisa diakses dengan mudah jika diperlukan
     public static PauseMenuManager Instance { get; private set; }
 
     [Header("UI Components")]
-    [SerializeField] private GameObject pauseMenuPanel; // Tarik Panel Pause Menu ke sini
-    [SerializeField] private GameObject settingsPanel;  // Tarik Panel Settings ke sini (jika ada)
+    [SerializeField] private GameObject pauseMenuPanel;
+    [SerializeField] private GameObject settingsPanel;
 
     private bool isPaused = false;
 
@@ -21,15 +20,13 @@ public class PauseMenuManager : MonoBehaviour
         }
         Instance = this;
 
-        // Pastikan panel menu tertutup saat awal game mulai
         if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
         if (settingsPanel != null) settingsPanel.SetActive(false);
     }
 
     private void Update()
     {
-        // Mengambil input dari Input Manager dengan nama "Pause"
-        if (Input.GetButtonDown("pause"))
+        if (Input.GetButtonDown("Pause"))
         {
             if (isPaused)
             {
@@ -44,7 +41,6 @@ public class PauseMenuManager : MonoBehaviour
 
     public void OpenPauseMenu()
     {
-        // SEKARANG MENGGUNAKAN FUNGSI BARU: Hanya batalkan pause jika panel game over benar-benar muncul
         if (GameOverManager.Instance != null && GameOverManager.Instance.IsGameOverActive()) return;
 
         isPaused = true;
@@ -53,35 +49,52 @@ public class PauseMenuManager : MonoBehaviour
         Time.timeScale = 0f;
     }
 
-    // 2. FUNGSI UNTUK TOMBOL CONTINUE
     public void ContinueGame()
     {
         isPaused = false;
         if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
-        if (settingsPanel != null) settingsPanel.SetActive(false); // Pastikan panel setting ikut tertutup
+        if (settingsPanel != null) settingsPanel.SetActive(false);
 
-        // Kembalikan waktu game menjadi normal berjalan
         Time.timeScale = 1f;
     }
 
-    // 3. FUNGSI UNTUK TOMBOL SETTING (Buka/Tutup Sub-Panel Setting)
-    public void OpenSettings(bool open)
+    // =================================================================
+    // 🛠️ FUNGSI BARU: TANPA PARAMETER (ANTI-BUG & LEBIH MUDAH DI-SETUP)
+    // =================================================================
+
+    // 1. PASANG FUNGSI INI DI "TOMBOL SETTING"
+    public void OpenSettingsMenu()
     {
+        Debug.Log("Tombol Setting Berhasil Diklik!"); // Cek di jendela Console Unity
+
         if (pauseMenuPanel != null && settingsPanel != null)
         {
-            pauseMenuPanel.SetActive(!open); // Sembunyikan pause menu jika setting dibuka, dan sebaliknya
-            settingsPanel.SetActive(open);
+            pauseMenuPanel.SetActive(false); // Sembunyikan menu pause utama
+            settingsPanel.SetActive(true);   // Munculkan menu setting
+        }
+        else
+        {
+            Debug.LogError("Gagal! Ada panel yang belum Anda masukkan ke Inspector PauseMenuManager!");
         }
     }
 
-    // 4. FUNGSI UNTUK TOMBOL QUIT TO MAIN MENU
+    // 2. PASANG FUNGSI INI DI "TOMBOL BACK" (DI DALAM PANEL SETTING)
+    public void CloseSettingsMenu()
+    {
+        Debug.Log("Tombol Back Berhasil Diklik!"); // Cek di jendela Console Unity
+
+        if (pauseMenuPanel != null && settingsPanel != null)
+        {
+            pauseMenuPanel.SetActive(true);   // Munculkan kembali menu pause utama
+            settingsPanel.SetActive(false);  // Sembunyikan menu setting
+        }
+    }
+
+    // =================================================================
+
     public void QuitToMainMenu()
     {
-        // WAJIB kembalikan waktu menjadi normal sebelum pindah scene, 
-        // jika tidak, Main Menu Anda akan ikut nge-freeze/macet!
         Time.timeScale = 1f;
-
-        // Kembali ke Main Menu (Index 0 di Build Settings)
         SceneManager.LoadScene(0);
     }
 }
